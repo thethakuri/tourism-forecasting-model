@@ -57,7 +57,7 @@ library(knitr)
 library(formattable)
 options("scipen"=100, "digits"=2)
 
-nepal_tourism <- read.table(file = "/mnt/765E305F5E3019F7/Documents and Settings/Ashish Singh/My Documents/My Docs/Ace IoM/Semester II/Data Modeling II/nepal_economic_survery.csv", header = TRUE, sep=",", check.names = FALSE)
+nepal_tourism <- read.table(file = "https://raw.githubusercontent.com/thethakuri/tourism-forecasting-model/master/nepal_economic_survery.csv", header = TRUE, sep=",", check.names = FALSE)
 #rownames(nepal_tourism) <- nepal_tourism[,1]
 #nepal_tourism <- nepal_tourism[,-1]
 
@@ -783,6 +783,10 @@ colnames(prediction) <- c('Year', 'Travel & Tourism Direct Contribution to Emplo
 ggplot(tfxr[-15,], aes(x=Year, y=`Travel & Tourism Direct Contribution to Employment`)) + geom_point(shape=23) + geom_line(aes(y=`Travel & Tourism Direct Contribution to Employment`), color="#555555") + xlab("Year") + ylab("Travel & Tourism Direct Contribution to Employment \n (in Thousands)") + theme_light() + theme(legend.position="top", text = element_text(size=8))  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + scale_y_continuous(labels = function(x)x/1000) + geom_smooth(method = "lm", color="black", se=FALSE) + geom_point(data = prediction, size=2, aes(shape = factor(Year, labels = c(paste("2016 : ", p2016), paste("2017 : ", p2017), paste("2018 : ", p2018))))) + labs(shape="")
 ```
 
+
+```{r echo=FALSE}
+kable(nepal_tourism, col.names = c("Year", "TFXR", "Tourist Arrival", "GFXE", "ALS", "TDCE"))
+```
 
 # Citation
 
