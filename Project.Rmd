@@ -5,6 +5,7 @@ author:
   name: Ashish Singh
 date: "October 3, 2016"
 output:
+  rmarkdown::github_document
   pdf_document:
     citation_package: natbib
     fig_caption: yes
