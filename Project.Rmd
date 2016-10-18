@@ -785,10 +785,6 @@ ggplot(tdce[-15,], aes(x=Year, y=`Travel & Tourism Direct Contribution to Employ
 ```
 
 
-```{r echo=FALSE}
-kable(nepal_tourism, col.names = c("Year", "tdce", "Tourist Arrival", "GFXE", "ALS", "TDCE"))
-```
-
 # Citation
 
 Turner, R.(2015). *Travel & Tourism: Economic Impact 2015(Nepal).* Retrieved from World Travel & Tourism Council Website: http://sp.wttc.org/-/media/files/reports/economic-impact-research/countries-2015/nepal2015.pdf
@@ -798,3 +794,11 @@ Ministry of Culture, Tourism & Civil Aviation.(2016). *NEPAL TOURISM STATISTICS 
 
   
 Nepal - Travel & Tourism Direct Contribution to Employment. (n.d.). Retrieved October 6, 2016, from https://knoema.com/atlas/Nepal/topics/Tourism/Travel-and-Tourism-Direct-Contribution-to-Employment/Direct-Contribution-to-Employment-thousands
+
+# Annexure
+
+## Table 1: Various indicators of tourism economy of Nepal 
+
+```{r echo=FALSE}
+kable(nepal_tourism, col.names = c("Year", "TFXR", "Tourist Arrival", "GFXE", "ALS", "TDCE"))
+```
