@@ -749,31 +749,31 @@ ggplot(tfxr[-15,], aes(x=Year, y=perTrend)) + geom_point() + geom_line(aes(y=`pe
     ```{r, echo=FALSE}
     sn <- 15
     x <- 2*(sn - x_bar)
-    p2016 <- round(b_0 + b_1 * x, 2)
+    p2016 <- round(b_0 + b_1 * x)
     ```
     Here $X = `r sn`$,  
     $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
-    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x`
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r round(b_0 + b_1 * x)`
 
 *  __2017__  
     ```{r, echo=FALSE}
     sn <- 16
     x <- 2*(sn - x_bar)
-    p2017 <- round(b_0 + b_1 * x, 2)
+    p2017 <- round(b_0 + b_1 * x)
     ```
     Here $X = `r sn`$,  
     $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
-    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x`
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r round(b_0 + b_1 * x)`
 
 *  __2018__  
     ```{r, echo=FALSE}
     sn <- 17
     x <- 2*(sn - x_bar)
-    p2018 <- round(b_0 + b_1 * x, 2)
+    p2018 <- round(b_0 + b_1 * x)
     ```
     Here $X = `r sn`$,  
     $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
-    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x`
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r round(b_0 + b_1 * x)`
 
 ```{r, fig.width=5, fig.height=3, fig.cap="Forecasting of Travel & Tourism Direct Contribution to Employment for the years 2016, 2017, 2018 using the linear trend line" , results='asis', echo=FALSE}
 
