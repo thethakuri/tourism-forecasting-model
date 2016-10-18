@@ -1,0 +1,795 @@
+---
+title: "Tourism Economics of Nepal"
+author:
+- affiliation: EMBA, Ace Institute of Management
+  name: Ashish Singh
+date: "October 3, 2016"
+output:
+  pdf_document:
+    citation_package: natbib
+    fig_caption: yes
+    latex_engine: pdflatex
+    template: svm-latex-ms.tex
+  html_document: default
+  word_document: default
+fontsize: 11pt
+geometry: margin=1in
+fontfamily: mathpazo
+subtitle: Analysis & forecasting
+abstract: Trend analysis and forecasting of various tourism related economic indicators
+  of Nepal. The time series data used ranges from the year 2002 to 2015 and forecasting
+  is done for the subsequent three years. Variables used are Total Foreign Exchange
+  Reserves, Number of Tourist Arrival, Gross Foreign Earnings from Tourism, Average
+  Length of Stay and Travel & Tourism Direct Contribution to Employment.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Chapter 1: Introduction
+
+## Impact of Tourism
+Generating US$7.6 trillion (10% of global GDP) and 277 million jobs (1 in 11 jobs) for the
+global economy in 2014, Travel & Tourism is an important economic activity in most countries around the world. As well as its direct economic
+impact, the sector has significant indirect and induced impacts. Recent years have seen Travel & Tourism growing at a faster rate than both the
+wider economy and other significant sectors such as automotive, financial services and health care. Last year
+was no exception. International tourist arrivals also surged, reaching nearly 1.14billion and visitor spending
+more than matched that growth. Visitors from emerging economies now represent a 46% share of these
+international arrivals (up from 38% in 2000), proving the growth and increased opportunities for travel from
+those in these new markets (Turner, 2015, pg. 2).
+
+## Toursim in Nepal
+Nepal Tourism Policy 2009 identifies tourism sector as an important
+vehicle for economic and social development. Following directions set by the
+policy effort has been put for development and expansion of tourism activities,
+quality improvement of tourism services, increasing revenue and expansion of
+employment opportunities to improve the living standard of Nepalese people.
+Vision 2020 of tourism envisions increasing tourist arrival to two million and
+tourism related employment to one million (Ministry of Culture, Tourism & Civil Aviation, 2016). 
+
+
+
+```{r echo = FALSE}
+library(ggplot2)
+library(reshape2)
+library(knitr)
+library(formattable)
+options("scipen"=100, "digits"=2)
+
+nepal_tourism <- read.table(file = "/mnt/765E305F5E3019F7/Documents and Settings/Ashish Singh/My Documents/My Docs/Ace IoM/Semester II/Data Modeling II/nepal_economic_survery.csv", header = TRUE, sep=",", check.names = FALSE)
+#rownames(nepal_tourism) <- nepal_tourism[,1]
+#nepal_tourism <- nepal_tourism[,-1]
+
+precise_tourism <- cbind(nepal_tourism[,1], sprintf("%.2f", nepal_tourism[, 2]), nepal_tourism[,3], sprintf("%.3f", nepal_tourism[, 4]), nepal_tourism[, 5], nepal_tourism[, 6])
+
+# Formatting precision for display
+nepal_tourism$`Total Foreign Exchange Reserves` = formattable(nepal_tourism[, 2], digits=2, format="f")
+nepal_tourism$`Gross Foreign Exchange Earnings From Tourism` = formattable(nepal_tourism[, 4] , digits=3, format="f")
+
+```
+
+
+
+```{r fig.width=5, fig.height=3, fig.cap="Even with sudden decline of number of tourists after 2015 earthquake, we can see that there was a steady growth in the number of employnent directly contributed by the tourism industry.", echo=FALSE}
+#tsforex <- ts(nepal_tourism[,2], frequency = 1, start = 2002)
+#plot.ts(tsforex)
+ggplot(nepal_tourism, aes(x=Year)) + geom_line(aes(y=`Tourist Arrival`, linetype="Tourist Arrival")) + geom_smooth(aes(y=`Travel & Tourism Direct Contribution to Employment`, linetype="Direct Contribution to Employment"), se=FALSE, color="#444444") + xlab("Year") + ylab("Number (in Thousands)") + theme_light()  + guides(linetype=guide_legend(title="")) + annotate(geom="text", x=2014.8, y=700000, label="Decline ->", color="red", angle = -70) + theme(legend.position="top", text = element_text(size=10)) + scale_y_continuous(labels = function(x)x/1000)
+```
+
+
+Trend of tourist arrival was in increased order up to 2012 which
+declined thereafter. After the 7.8 magnitude earthquake that rocked Nepal, we saw a sharp decline of almost 32% fewer tourists than the previous year. However, the growth in the direct employment contibuted by travel and tourism industry maintained a steady growth. In this report, we will try to analyze the times series Nepal Tourism data starting from the year 2002 up till 2015. The variables used for analysis are:
+
+1. TFXR - Total Foreign Exchange Reserves
+
+2. TR - Number of Tourist Arrival
+
+3. GFXE - Gross Foreign Exchange Earnings From Tourism
+
+4. ALS - Average Length of Stay
+
+5. TDCE - Travel & Tourism Direct Contribution to Employment
+
+
+# Chapter 2: Data Analysis
+
+For data analysis part we will do following trend analyses:
+
+* __Trend line__
+
+    $\widehat{Y} = b_0 + b_1x$  
+      where   
+      
+      $\widehat{Y}$ = estimate of the dependent variable
+      
+      $x$ = coded value of the time variable
+      
+      $b_1$ = slope = $\frac{\sum xY}{\sum x^2}$
+      
+      $b_0$ = intercept = $\frac{\sum Y}{n}$
+      
+
+* __Percentages of trend__
+
+    -  __Percent of Trend__
+        
+          We have
+        
+          $Percent of Trend$ = $\frac{Y}{\widehat{Y}} \times 100$ 
+          
+          where
+          
+          $Y$ = actual time-series value
+          
+          $\widehat{Y}$ = estimated trend value from the same point in the time series
+          
+          baseline = 100
+        
+    -  __Relative Cyclical Residual__
+        
+          We have
+        
+          $Relative Cyclical Residual$ = $\frac{Y - \widehat{Y}}{\widehat{Y}} \times 100$
+        
+          baseline = 0
+
+* __Forecast__ value for the next three years, i.e. 2016, 2017, 2018
+
+As our series contains data from 2002 to 2014, $n = 14$ 
+
+## Transfering $X$ into $x$
+
+- Since $n$ is even, $x = 2(X - \overline{X})$
+
+# 2.1: Trend analysis of Total Foreign Exchange Reserves(TFXR)
+
+
+```{r, echo=FALSE}
+
+n <- nrow(nepal_tourism)
+nsum <- n*(n+1)/2
+x_bar <- nsum/n
+row_vec <- row(nepal_tourism)[,1]
+x <- 2*(row_vec-x_bar)
+xY <- x * nepal_tourism[,2]
+tfxr <- cbind(row_vec, nepal_tourism[,1:2], x, xY, x^2)
+tfxr <- rbind(tfxr, colSums(tfxr))
+#xtable(tfxr)
+kable(tfxr, col.names = c("SN.", "Year ($X$)", "TFXR ($Y$)", "$x = 2(X - \\overline{X})$", "$xY$", "$x^2$"))
+
+```
+
+
+```{r, fig.width=5, fig.height=3, fig.cap="Data plot for Total Foreign Exchange Reserves augmented with LOESS regression curve with 95% confidence interval range", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Total Foreign Exchange Reserves`)) + geom_point() + geom_line(aes(y=`Total Foreign Exchange Reserves`)) + xlab("Year") + ylab("Total Foreign Exchange Reserves \n (in Billions Rs.)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + scale_y_continuous(labels = function(x)x/1000) + stat_smooth()
+```
+
+## Trend Line
+
+* **Linear Trend**
+  
+    We have
+      
+    $\widehat{Y} = b_0 + b_1X$  
+      where   
+    ```{r, echo=FALSE}
+    b_1 <- tfxr[15,5]/tfxr[15,6]
+    b_0 <- tfxr[15,3]/n
+    ```
+      $b_1 = \frac{\sum xY}{\sum x^2}$ = $\frac{`r tfxr[15,5]`}{`r tfxr[15,6]`}$ = `r b_1`
+      
+      $b_0 = \frac{\sum Y}{n}$ = $\frac{`r tfxr[15,3]`}{`r n`}$ = `r b_0`  
+      
+      
+    So, $\widehat{Y} = b_0 + b_1X = `r b_0` + `r b_1`x$
+    
+```{r, fig.width=5, fig.height=3, fig.cap="Linear trend line of Total Foreign Exchange Reserves with 95% confidence interval range" , results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Total Foreign Exchange Reserves`)) + geom_point() + geom_line(aes(y=`Total Foreign Exchange Reserves`), color="#555555") + xlab("Year") + ylab("Total Foreign Exchange Reserves \n (in Billions Rs.)") + theme_light() + theme(legend.position="right", text = element_text(size=8)) + scale_y_continuous(labels = function(x)x/1000)  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + geom_smooth(method = "lm", color="black")
+```
+
+  
+## Cyclical Variation 
+
+*  __Percent of Trend__
+    
+    We have
+    
+    $Percent of Trend$ = $\frac{Y}{\widehat{Y}} \times 100$, where
+    
+    $Y$ = actual time-series value
+    
+    $\widehat{Y}$ = estimated trend value from the same point in the time series
+    
+    baseline = 100
+    
+*  __Relative Cyclical Residual__
+    
+    We have
+    
+    $Relative Cyclical Residual$ = $\frac{Y - \widehat{Y}}{\widehat{Y}} \times 100$, where
+    
+    baseline = 0
+    
+```{r, echo=FALSE}
+y_hat <- b_0 + b_1 * tfxr[1:14, 4]
+perTrend <- tfxr[1:14,3] / y_hat * 100
+relCyc <- (tfxr[1:14,3] - y_hat) / y_hat * 100
+tfxr <- cbind(tfxr[1:14, c(2, 3, 4)], y_hat, perTrend, relCyc)
+kable(tfxr, col.names = c("Year ($X$)", "TFXR ($Y$)", "$x$", "$\\widehat{Y}$", "$\\frac{Y}{\\widehat{Y}} \\times 100$", "$\\frac{Y - \\widehat{Y}}{\\widehat{Y}} \\times 100$"))
+
+```
+
+  
+For both measure of variaton, the highest fluctuation occured in the year 2002 where the *percent of trend* indicated the actual total foreign exchange reserves was about 878% of the expected value that year. For the same year, the *relative cyclical residual* indicated that the actual value was about 978% excess of the expected value.
+
+  
+  
+```{r, fig.width=5, fig.height=3, fig.cap="Percent of trend around the trend line for Total Foreign Exchange Reserves", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=perTrend)) + geom_point() + geom_line(aes(y=`perTrend`)) + xlab("Year") + ylab("Percent of trend") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_function(fun = function(x) {x = 100}, linetype="dashed") + scale_y_continuous(breaks=seq(-900, 300, by=100))
+```
+
+
+## Forecasting Total Foreign Exchange Reserves for the years 2016, 2017, 2018
+
+*  __2016__  
+    ```{r, echo=FALSE}
+    sn <- 15
+    x <- 2*(sn - x_bar)
+    p2016 <- b_0 + b_1 * x
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ = $Rs.$ `r b_0 + b_1 * x` $million$
+
+*  __2017__  
+    ```{r, echo=FALSE}
+    sn <- 16
+    x <- 2*(sn - x_bar)
+    p2017 <- b_0 + b_1 * x
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ = $Rs.$ `r b_0 + b_1 * x` $million$
+
+*  __2018__  
+    ```{r, echo=FALSE}
+    sn <- 17
+    x <- 2*(sn - x_bar)
+    p2018 <- b_0 + b_1 * x
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ = $Rs.$ `r b_0 + b_1 * x` $million$
+
+
+
+```{r, fig.width=5, fig.height=3, fig.cap="Forecasting of Total Foreign Exchange Reserves for the year 2016, 2017, 2018 using the linear trend line" , results='asis', echo=FALSE}
+
+prediction <- data.frame(cbind(c(2016,2017,2018), c(p2016, p2017, p2018)))
+colnames(prediction) <- c('Year', 'Total Foreign Exchange Reserves')
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Total Foreign Exchange Reserves`)) + geom_point(shape=23) + geom_line(aes(y=`Total Foreign Exchange Reserves`), color="#555555") + xlab("Year") + ylab("Total Foreign Exchange Reserves \n (in Billions Rs.)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + scale_y_continuous(labels = function(x)x/1000)  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + geom_smooth(method = "lm", color="black", se=FALSE) + geom_point(data = prediction, size=2, aes(shape = factor(Year, labels = c(paste("2016 : Rs.", round(p2016, digits=2), "million"), paste("2017 : Rs.", round(p2017, digits=2), "million"), paste("2018 : Rs.", round(p2018, digits=2), "million"))))) + labs(shape="")
+```
+
+# 2.2: Trend analysis of Tourist Arrival
+
+
+```{r, echo=FALSE}
+
+x <- 2*(row_vec-x_bar)
+xY <- x * nepal_tourism[,3]
+tfxr <- cbind(row_vec, nepal_tourism[,c(1,3)], x, xY, x^2)
+tfxr <- rbind(tfxr, colSums(tfxr))
+#xtable(tfxr)
+kable(tfxr, col.names = c("SN.", "Year ($X$)", "Tourist Arrival ($Y$)", "$x = 2(X - \\overline{X})$", "$xY$", "$x^2$"))
+
+```
+
+
+```{r, fig.width=5, fig.height=3, fig.cap="Tourist Arrival augmented with LOESS regression curve with 95% confidence interval range", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Tourist Arrival`)) + geom_point() + geom_line(aes(y=`Tourist Arrival`)) + xlab("Year") + ylab("Tourist Arrival \n (in Thousands)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_smooth() + scale_y_continuous(labels = function(x)x/1000)
+```
+
+## Trend Line
+
+* **Linear Trend**
+  
+    We have
+      
+    $\widehat{Y} = b_0 + b_1X$  
+      where   
+    ```{r, echo=FALSE}
+    b_1 <- tfxr[15,5]/tfxr[15,6]
+    b_0 <- tfxr[15,3]/n
+    ```
+      $b_1 = \frac{\sum xY}{\sum x^2}$ = $\frac{`r tfxr[15,5]`}{`r tfxr[15,6]`}$ = `r b_1`
+      
+      $b_0 = \frac{\sum Y}{n}$ = $\frac{`r tfxr[15,3]`}{`r n`}$ = `r b_0`  
+      
+      
+    So, $\widehat{Y} = b_0 + b_1X = `r b_0` + `r b_1`x$
+    
+```{r, fig.width=5, fig.height=3, fig.cap="Linear trend line of Tourist Arrival with 95% confidence interval range" , results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Tourist Arrival`)) + geom_point() + geom_line(aes(y=`Tourist Arrival`), color="#555555") + xlab("Year") + ylab("Tourist Arrival \n (in Thousands)") + theme_light() + theme(legend.position="top", text = element_text(size=8))  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + scale_y_continuous(labels = function(x)x/1000) + geom_smooth(method = "lm", color="black")
+```
+  
+
+## Cyclical Variation 
+
+*  __Percent of Trend__
+    
+    We have
+    
+    $Percent of Trend$ = $\frac{Y}{\widehat{Y}} \times 100$, where
+    
+    $Y$ = actual time-series value
+    
+    $\widehat{Y}$ = estimated trend value from the same point in the time series
+    
+    baseline = 100
+    
+*  __Relative Cyclical Residual__
+    
+    We have
+    
+    $Relative Cyclical Residual$ = $\frac{Y - \widehat{Y}}{\widehat{Y}} \times 100$, where
+    
+    baseline = 0
+    
+```{r, echo=FALSE}
+y_hat <- b_0 + b_1 * tfxr[1:14, 4]
+perTrend <- tfxr[1:14,3] / y_hat * 100
+relCyc <- (tfxr[1:14,3] - y_hat) / y_hat * 100
+tfxr <- cbind(tfxr[1:14, c(2, 3, 4)], y_hat, perTrend, relCyc)
+kable(tfxr, col.names = c("Year ($X$)", "Tourist Arrival ($Y$)", "$x$", "$\\widehat{Y}$", "$\\frac{Y}{\\widehat{Y}} \\times 100$", "$\\frac{Y - \\widehat{Y}}{\\widehat{Y}} \\times 100$"))
+
+```
+
+  
+For both measure of variaton, the highest fluctuation occured in the year 2015 where the *percent of trend* indicated the actual total tourist arrival was about 69% of the expected value that year. For the same year, the *relative cyclical residual* indicated that the actual value was about 31% short of the expected value.
+
+```{r, fig.width=5, fig.height=3, fig.cap="Percent of trend around the trend line for Tourist Arrival", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=perTrend)) + geom_point() + geom_line(aes(y=`perTrend`)) + xlab("Year") + ylab("Percent of trend") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_function(fun = function(x) {x = 100}, linetype="dashed") + scale_y_continuous(breaks=seq(60, 130, by=10))
+```
+
+
+  
+## Forecasting Tourist Arrival for the years 2016, 2017, 2018
+
+*  __2016__  
+    ```{r, echo=FALSE}
+    sn <- 15
+    x <- 2*(sn - x_bar)
+    p2016 <- round(b_0 + b_1 * x)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r round(b_0 + b_1 * x)`
+
+*  __2017__  
+    ```{r, echo=FALSE}
+    sn <- 16
+    x <- 2*(sn - x_bar)
+    p2017 <- round(b_0 + b_1 * x)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r round(b_0 + b_1 * x)`
+
+*  __2018__  
+    ```{r, echo=FALSE}
+    sn <- 17
+    x <- 2*(sn - x_bar)
+    p2018 <- round(b_0 + b_1 * x)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r round(b_0 + b_1 * x)`
+
+
+
+```{r, fig.width=5, fig.height=3, fig.cap="Forecasting of Tourist Arrival for the years 2016, 2017, 2018 using the linear trend line" , results='asis', echo=FALSE}
+
+prediction <- data.frame(cbind(c(2016,2017,2018), c(p2016, p2017, p2018)))
+colnames(prediction) <- c('Year', 'Tourist Arrival')
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Tourist Arrival`)) + geom_point(shape=23) + geom_line(aes(y=`Tourist Arrival`), color="#555555") + xlab("Year") + ylab("Tourist Arrival \n (in Thousands)") + theme_light() + theme(legend.position="top", text = element_text(size=8))  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + scale_y_continuous(labels = function(x)x/1000) + geom_smooth(method = "lm", color="black", se=FALSE) + geom_point(data = prediction, size=2, aes(shape = factor(Year, labels = c(paste("2016 : ", p2016), paste("2017 : ", p2017), paste("2018 : ", p2018))))) + labs(shape="")
+```
+
+
+# 2.3: Trend analysis of Gross Foreign Exchange Earnings From Tourism(GFXE)
+
+
+```{r, echo=FALSE}
+
+x <- 2*(row_vec-x_bar)
+xY <- x * nepal_tourism[,4]
+tfxr <- cbind(row_vec, nepal_tourism[,c(1,4)], x, xY, x^2)
+tfxr <- rbind(tfxr, colSums(tfxr))
+#xtable(tfxr)
+kable(tfxr, col.names = c("SN.", "Year ($X$)", "GFXE ($Y$)", "$x = 2(X - \\overline{X})$", "$xY$", "$x^2$"), digits = 2)
+
+```
+
+
+```{r , fig.width=5, fig.height=3, fig.cap="Gross Foreign Exchange Earnings From Tourism augmented with LOESS regression curve with 95% confidence interval range", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Gross Foreign Exchange Earnings From Tourism`)) + geom_point() + geom_line(aes(y=`Gross Foreign Exchange Earnings From Tourism`)) + xlab("Year") + ylab("Gross Foreign Exchange Earnings From Tourism \n (in Billions Rs.)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + scale_y_continuous(labels = function(x)x/1000) + stat_smooth()
+```
+
+## Trend Line
+
+* **Linear Trend**
+  
+    We have
+      
+    $\widehat{Y} = b_0 + b_1X$  
+      where   
+    ```{r, echo=FALSE}
+        b_1 <- tfxr[15,5]/tfxr[15,6]
+        b_0 <- tfxr[15,3]/n
+    ```
+      $b_1 = \frac{\sum xY}{\sum x^2}$ = $\frac{`r tfxr[15,5]`}{`r tfxr[15,6]`}$ = `r b_1`
+      
+      $b_0 = \frac{\sum Y}{n}$ = $\frac{`r tfxr[15,3]`}{`r n`}$ = `r b_0`  
+      
+      
+    So, $\widehat{Y} = b_0 + b_1X = `r b_0` + `r b_1`x$
+  
+```{r , fig.width=5, fig.height=3, fig.cap="Linear trend line of Gross Foreign Exchange Earnings From Tourism with 95% confidence interval range" , results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Gross Foreign Exchange Earnings From Tourism`)) + geom_point() + geom_line(aes(y=`Gross Foreign Exchange Earnings From Tourism`), color="#555555") + xlab("Year") + ylab("Gross Foreign Exchange Earnings From Tourism \n (in Billions Rs.)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + scale_y_continuous(labels = function(x)x/1000)  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + geom_smooth(method = "lm", color="black")
+```
+
+## Cyclical Variation 
+
+*  __Percent of Trend__
+    
+    We have
+    
+    $Percent of Trend$ = $\frac{Y}{\widehat{Y}} \times 100$, where
+    
+    $Y$ = actual time-series value
+    
+    $\widehat{Y}$ = estimated trend value from the same point in the time series
+    
+    baseline = 100
+    
+*  __Relative Cyclical Residual__
+    
+    We have
+    
+    $Relative Cyclical Residual$ = $\frac{Y - \widehat{Y}}{\widehat{Y}} \times 100$, where
+    
+    baseline = 0
+    
+```{r, echo=FALSE}
+y_hat <- b_0 + b_1 * tfxr[1:14, 4]
+perTrend <- tfxr[1:14,3] / y_hat * 100
+relCyc <- (tfxr[1:14,3] - y_hat) / y_hat * 100
+tfxr <- cbind(tfxr[1:14, c(2, 3, 4)], y_hat, perTrend, relCyc)
+kable(tfxr, col.names = c("Year ($X$)", "GFXE ($Y$)", "$x$", "$\\widehat{Y}$", "$\\frac{Y}{\\widehat{Y}} \\times 100$", "$\\frac{Y - \\widehat{Y}}{\\widehat{Y}} \\times 100$"))
+
+```
+
+  
+For both measure of variaton, the highest fluctuation occured in the year 2002 where the *percent of trend* indicated the actual Gross Foreign Exchange Earnings From Tourism was about 215% of the expected value that year. For the same year, the *relative cyclical residual* indicated that the actual value was about 115% excess of the expected value.
+
+```{r, fig.width=5, fig.height=3, fig.cap="Percent of trend around the trend line for Gross Foreign Exchange Earnings From Tourism", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=perTrend)) + geom_point() + geom_line(aes(y=`perTrend`)) + xlab("Year") + ylab("Percent of trend") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_function(fun = function(x) {x = 100}, linetype="dashed") + scale_y_continuous(breaks=seq(60, 220, by=20))
+```
+
+
+  
+## Forecasting Gross Foreign Exchange Earnings From Tourism for the years 2016, 2017, 2018
+
+*  __2016__  
+    ```{r, echo=FALSE}
+    sn <- 15
+    x <- 2*(sn - x_bar)
+    p2016 <- b_0 + b_1 * x
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ = $Rs.$ `r b_0 + b_1 * x` $million$
+
+*  __2017__  
+    ```{r, echo=FALSE}
+    sn <- 16
+    x <- 2*(sn - x_bar)
+    p2017 <- b_0 + b_1 * x
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ = $Rs.$ `r b_0 + b_1 * x` $million$
+
+*  __2018__  
+    ```{r, echo=FALSE}
+    sn <- 17
+    x <- 2*(sn - x_bar)
+    p2018 <- b_0 + b_1 * x
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ = $Rs.$ `r b_0 + b_1 * x` $million$
+
+
+```{r, fig.width=5, fig.height=3, fig.cap="Forecasting of Gross Foreign Exchange Earnings From Tourism for the years 2016, 2017, 2018 using the linear trend line" , results='asis', echo=FALSE}
+
+prediction <- data.frame(cbind(c(2016,2017,2018), c(p2016, p2017, p2018)))
+colnames(prediction) <- c('Year', 'Gross Foreign Exchange Earnings From Tourism')
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Gross Foreign Exchange Earnings From Tourism`)) + geom_point(shape=23) + geom_line(aes(y=`Gross Foreign Exchange Earnings From Tourism`), color="#555555") + xlab("Year") + ylab("Gross Foreign Exchange Earnings From Tourism \n (in Billions Rs.)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + scale_y_continuous(labels = function(x)x/1000)  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + geom_smooth(method = "lm", color="black", se=FALSE) + geom_point(data = prediction, size=2, aes(shape = factor(Year, labels = c(paste("2016 : Rs.", round(p2016, digits=2), "million"), paste("2017 : Rs.", round(p2017, digits=2), "million"), paste("2018 : Rs.", round(p2018, digits=2), "million"))))) + labs(shape="")
+```
+
+
+
+# 2.4: Average Length of Stay(ALS)
+
+
+```{r, echo=FALSE}
+
+x <- 2*(row_vec-x_bar)
+xY <- x * nepal_tourism[,5]
+tfxr <- cbind(row_vec, nepal_tourism[,c(1,5)], x, xY, x^2)
+tfxr <- rbind(tfxr, colSums(tfxr))
+#xtable(tfxr)
+kable(tfxr, col.names = c("SN.", "Year ($X$)", "ALS ($Y$)", "$x = 2(X - \\overline{X})$", "$xY$", "$x^2$"))
+
+```
+
+
+```{r, fig.width=5, fig.height=3, fig.cap="Average Length of Stay augmented with LOESS regression curve with 95% confidence interval range", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Average Length of Stay`)) + geom_point() + geom_line(aes(y=`Average Length of Stay`)) + xlab("Year") + ylab("Average Length of Stay \n (in Days)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_smooth()
+```
+
+## Trend Line
+
+* **Linear Trend**
+  
+    We have
+      
+    $\widehat{Y} = b_0 + b_1X$  
+      where   
+    ```{r, echo=FALSE}
+    b_1 <- tfxr[15,5]/tfxr[15,6]
+    b_0 <- tfxr[15,3]/n
+    ```
+      $b_1 = \frac{\sum xY}{\sum x^2}$ = $\frac{`r tfxr[15,5]`}{`r tfxr[15,6]`}$ = `r b_1`
+      
+      $b_0 = \frac{\sum Y}{n}$ = $\frac{`r tfxr[15,3]`}{`r n`}$ = `r b_0`  
+      
+      
+    So, $\widehat{Y} = b_0 + b_1X = `r b_0` + `r b_1`x$
+  
+```{r, fig.width=5, fig.height=3, fig.cap="Linear trend line of Average Length of Stay with 95% confidence interval range" , results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Average Length of Stay`)) + geom_point() + geom_line(aes(y=`Average Length of Stay`), color="#555555") + xlab("Year") + ylab("Average Length of Stay \n (in Days)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + geom_smooth(method = "lm", color="black")
+```
+
+## Cyclical Variation 
+
+*  __Percent of Trend__
+    
+    We have
+    
+    $Percent of Trend$ = $\frac{Y}{\widehat{Y}} \times 100$, where
+    
+    $Y$ = actual time-series value
+    
+    $\widehat{Y}$ = estimated trend value from the same point in the time series
+    
+    baseline = 100
+    
+*  __Relative Cyclical Residual__
+    
+    We have
+    
+    $Relative Cyclical Residual$ = $\frac{Y - \widehat{Y}}{\widehat{Y}} \times 100$, where
+    
+    baseline = 0
+    
+```{r, echo=FALSE}
+y_hat <- b_0 + b_1 * tfxr[1:14, 4]
+perTrend <- tfxr[1:14,3] / y_hat * 100
+relCyc <- (tfxr[1:14,3] - y_hat) / y_hat * 100
+tfxr <- cbind(tfxr[1:14, c(2, 3, 4)], y_hat, perTrend, relCyc)
+kable(tfxr, col.names = c("Year ($X$)", "ALS ($Y$)", "$x$", "$\\widehat{Y}$", "$\\frac{Y}{\\widehat{Y}} \\times 100$", "$\\frac{Y - \\widehat{Y}}{\\widehat{Y}} \\times 100$"))
+
+```
+
+  
+For both measure of variaton, the highest fluctuation occured in the year 2004 where the *percent of trend* indicated the actual Average Length of Stay was about 132% of the expected value that year. For the same year, the *relative cyclical residual* indicated that the actual value was about 32% excess of the expected value.
+
+```{r, fig.width=5, fig.height=3, fig.cap="Percent of trend around the trend line for Average Length of Stay", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=perTrend)) + geom_point() + geom_line(aes(y=`perTrend`)) + xlab("Year") + ylab("Percent of trend") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_function(fun = function(x) {x = 100}, linetype="dashed") + scale_y_continuous(breaks=seq(80, 140, by=20))
+```
+
+ 
+  
+## Forecasting Average Length of Stay for the years 2016, 2017, 2018
+
+*  __2016__  
+    ```{r, echo=FALSE}
+    sn <- 15
+    x <- 2*(sn - x_bar)
+    p2016 <- round(b_0 + b_1 * x, 2)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x` $days$
+
+*  __2017__  
+    ```{r, echo=FALSE}
+    sn <- 16
+    x <- 2*(sn - x_bar)
+    p2017 <- round(b_0 + b_1 * x, 2)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x` $days$
+
+*  __2018__  
+    ```{r, echo=FALSE}
+    sn <- 17
+    x <- 2*(sn - x_bar)
+    p2018 <- round(b_0 + b_1 * x, 2)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x` $days$
+
+```{r, fig.width=5, fig.height=3, fig.cap="Forecasting of Average Length of Stay for the years 2016, 2017, 2018 using the linear trend line" , results='asis', echo=FALSE}
+
+prediction <- data.frame(cbind(c(2016,2017,2018), c(p2016, p2017, p2018)))
+colnames(prediction) <- c('Year', 'Average Length of Stay')
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Average Length of Stay`)) + geom_point(shape=23) + geom_line(aes(y=`Average Length of Stay`), color="#555555") + xlab("Year") + ylab("Average Length of Stay \n (in Days)") + theme_light() + theme(legend.position="top", text = element_text(size=8))  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + scale_y_continuous(labels = function(x)x/1000) + geom_smooth(method = "lm", color="black", se=FALSE) + geom_point(data = prediction, size=2, aes(shape = factor(Year, labels = c(paste("2016 : ", p2016, "days "), paste("2017 : ", p2017, "days "), paste("2018 : ", p2018, "days "))))) + labs(shape="")
+```
+
+
+# 2.5: Travel & Tourism Direct Contribution to Employment(TDCE)
+
+
+```{r, echo=FALSE}
+
+x <- 2*(row_vec-x_bar)
+xY <- x * nepal_tourism[,6]
+tfxr <- cbind(row_vec, nepal_tourism[,c(1,6)], x, xY, x^2)
+tfxr <- rbind(tfxr, colSums(tfxr))
+#xtable(tfxr)
+kable(tfxr, col.names = c("SN.", "Year ($X$)", "TDCE ($Y$)", "$x = 2(X - \\overline{X})$", "$xY$", "$x^2$"))
+
+```
+
+
+```{r, fig.width=5, fig.height=3, fig.cap="Travel & Tourism Direct Contribution to Employment augmented with LOESS regression curve with 95% confidence interval range", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Travel & Tourism Direct Contribution to Employment`)) + geom_point() + geom_line(aes(y=`Travel & Tourism Direct Contribution to Employment`)) + xlab("Year") + ylab("Travel & Tourism Direct Contribution to Employment \n (in Thousands)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_smooth()  + scale_y_continuous(labels = function(x)x/1000)
+```
+
+## Trend Line
+
+* **Linear Trend**
+  
+    We have
+      
+    $\widehat{Y} = b_0 + b_1X$  
+      where   
+    ```{r, echo=FALSE}
+    b_1 <- tfxr[15,5]/tfxr[15,6]
+    b_0 <- tfxr[15,3]/n
+    ```
+      $b_1 = \frac{\sum xY}{\sum x^2}$ = $\frac{`r tfxr[15,5]`}{`r tfxr[15,6]`}$ = `r b_1`
+      
+      $b_0 = \frac{\sum Y}{n}$ = $\frac{`r tfxr[15,3]`}{`r n`}$ = `r b_0`  
+      
+      
+    So, $\widehat{Y} = b_0 + b_1X = `r b_0` + `r b_1`x$
+  
+```{r, fig.width=5, fig.height=3, fig.cap="Linear trend line of Travel & Tourism Direct Contribution to Employment with 95% confidence interval range" , results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Travel & Tourism Direct Contribution to Employment`)) + geom_point() + geom_line(aes(y=`Travel & Tourism Direct Contribution to Employment`), color="#555555") + xlab("Year") + ylab("Travel & Tourism Direct Contribution to Employment \n (in Thousands)") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + scale_y_continuous(labels = function(x)x/1000) + geom_smooth(method = "lm", color="black")
+```
+
+## Cyclical Variation 
+
+*  __Percent of Trend__
+    
+    We have
+    
+    $Percent of Trend$ = $\frac{Y}{\widehat{Y}} \times 100$, where
+    
+    $Y$ = actual time-series value
+    
+    $\widehat{Y}$ = estimated trend value from the same point in the time series
+    
+    baseline = 100
+    
+*  __Relative Cyclical Residual__
+    
+    We have
+    
+    $Relative Cyclical Residual$ = $\frac{Y - \widehat{Y}}{\widehat{Y}} \times 100$, where
+    
+    baseline = 0
+    
+```{r, echo=FALSE}
+y_hat <- b_0 + b_1 * tfxr[1:14, 4]
+perTrend <- tfxr[1:14,3] / y_hat * 100
+relCyc <- (tfxr[1:14,3] - y_hat) / y_hat * 100
+tfxr <- cbind(tfxr[1:14, c(2, 3, 4)], y_hat, perTrend, relCyc)
+kable(tfxr, col.names = c("Year ($X$)", "TDCE ($Y$)", "$x$", "$\\widehat{Y}$", "$\\frac{Y}{\\widehat{Y}} \\times 100$", "$\\frac{Y - \\widehat{Y}}{\\widehat{Y}} \\times 100$"))
+
+```
+
+  
+For both measure of variaton, the highest fluctuation occured in the year 2004 where the *percent of trend* indicated the actual Travel & Tourism Direct Contribution to Employment was about 119% of the expected value that year. For the same year, the *relative cyclical residual* indicated that the actual value was about 19% excess of the expected value.
+
+```{r, fig.width=5, fig.height=3, fig.cap="Percent of trend around the trend line for Travel & Tourism Direct Contribution to Employment", results='asis', echo=FALSE}
+
+ggplot(tfxr[-15,], aes(x=Year, y=perTrend)) + geom_point() + geom_line(aes(y=`perTrend`)) + xlab("Year") + ylab("Percent of trend") + theme_light() + theme(legend.position="top", text = element_text(size=8)) + stat_function(fun = function(x) {x = 100}, linetype="dashed") + scale_y_continuous(breaks=seq(60, 140, by=20))
+```
+
+  
+  
+## Forecasting Travel & Tourism Direct Contribution to Employment for the years 2016, 2017, 2018
+
+*  __2016__  
+    ```{r, echo=FALSE}
+    sn <- 15
+    x <- 2*(sn - x_bar)
+    p2016 <- round(b_0 + b_1 * x, 2)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x`
+
+*  __2017__  
+    ```{r, echo=FALSE}
+    sn <- 16
+    x <- 2*(sn - x_bar)
+    p2017 <- round(b_0 + b_1 * x, 2)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x`
+
+*  __2018__  
+    ```{r, echo=FALSE}
+    sn <- 17
+    x <- 2*(sn - x_bar)
+    p2018 <- round(b_0 + b_1 * x, 2)
+    ```
+    Here $X = `r sn`$,  
+    $\therefore x = 2(`r x` - `r x_bar`)$ = `r x`  
+    So, $\widehat{Y} = b_0 + b_1x = `r b_0` + `r b_1` * `r x`$ $\simeq$ `r b_0 + b_1 * x`
+
+```{r, fig.width=5, fig.height=3, fig.cap="Forecasting of Travel & Tourism Direct Contribution to Employment for the years 2016, 2017, 2018 using the linear trend line" , results='asis', echo=FALSE}
+
+prediction <- data.frame(cbind(c(2016,2017,2018), c(p2016, p2017, p2018)))
+colnames(prediction) <- c('Year', 'Travel & Tourism Direct Contribution to Employment')
+
+ggplot(tfxr[-15,], aes(x=Year, y=`Travel & Tourism Direct Contribution to Employment`)) + geom_point(shape=23) + geom_line(aes(y=`Travel & Tourism Direct Contribution to Employment`), color="#555555") + xlab("Year") + ylab("Travel & Tourism Direct Contribution to Employment \n (in Thousands)") + theme_light() + theme(legend.position="top", text = element_text(size=8))  + stat_function(fun = function(x) {b_0 + b_1 * 2 * (x - 2001 - x_bar)}, size=1) + scale_y_continuous(labels = function(x)x/1000) + geom_smooth(method = "lm", color="black", se=FALSE) + geom_point(data = prediction, size=2, aes(shape = factor(Year, labels = c(paste("2016 : ", p2016), paste("2017 : ", p2017), paste("2018 : ", p2018))))) + labs(shape="")
+```
+
+
+# Citation
+
+Turner, R.(2015). *Travel & Tourism: Economic Impact 2015(Nepal).* Retrieved from World Travel & Tourism Council Website: http://sp.wttc.org/-/media/files/reports/economic-impact-research/countries-2015/nepal2015.pdf
+  
+
+Ministry of Culture, Tourism & Civil Aviation.(2016). *NEPAL TOURISM STATISTICS 2015.* Retrieved from Government of Nepal Ministry of Culture, Tourism & Civil Aviation Website: http://www.tourism.gov.np/new/downloadfile/Nepal_Tourism_Statistics_2015_forwebsite_edited.pdf
+
+  
+Nepal - Travel & Tourism Direct Contribution to Employment. (n.d.). Retrieved October 6, 2016, from https://knoema.com/atlas/Nepal/topics/Tourism/Travel-and-Tourism-Direct-Contribution-to-Employment/Direct-Contribution-to-Employment-thousands
